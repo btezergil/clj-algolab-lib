@@ -9,10 +9,6 @@
            (java.security MessageDigest)
            (org.apache.commons.codec.binary Base64 Hex)))
 
-;; You will have to initialize three environment variables for ALGOLAB:
-;; ALGOLAB_APIKEY: apiKey given by ALGOLAB for access
-;; ALGOLAB_USERNAME: TCKN of ALGOLAB account
-;; ALGOLAB_PASSWORD: password of ALGOLAB account
 (def apikey (:algolab-apikey @env))
 (def username (:algolab-username @env))
 (def password (:algolab-password @env))
@@ -74,6 +70,20 @@
           (log/info "Login to ALGOLAB succeeded, hash received.")
           @checker-hash)
       (log/warn "Login to ALGOLAB failed, no hash received. Response: " response))))
+
+(defn session-refresh
+  "Refreshes the existing session."
+  []
+  (let [checker (generate-checker "/SessionRefresh" "")
+        response (client/post (str api-hostname "/api/SessionRefresh")
+                              {:content-type :json
+                               :body (json/write-str {})
+                               :headers {"APIKEY" apikey
+                                         "Checker" checker
+                                         "Authorization" @checker-hash}})]
+    (if (= 200 (:status response))
+      (log/info "Session refreshed successfully.")
+      (log/warn "Session failed to refresh. Response: " response))))
 
 (defn equity-info
   [equity]

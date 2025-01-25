@@ -1,10 +1,15 @@
 # btezergil/algolab-lib
 
-FIXME: my new library.
+Clojure library to access Denizbank ALGOLAB infrastructure.
 
 ## Usage
+You will have to initialize three environment variables for ALGOLAB:
+ALGOLAB_APIKEY: apiKey given by ALGOLAB for access
+ALGOLAB_USERNAME: TCKN of ALGOLAB account
+ALGOLAB_PASSWORD: password of ALGOLAB account
 
-FIXME: write usage documentation!
+In order to access the API, you'll need to call the login function and then the login-sms-code function with the received code.
+The hash received from this flow is required to generate the checker, which is used to validate all API requests.
 
 Invoke a library API function from the command-line:
 
