@@ -35,6 +35,11 @@
         digest (MessageDigest/getInstance "SHA256")]
     (Hex/encodeHexString (.digest digest (.getBytes data "UTF-8")))))
 
+(defn set-checker-hash-externally
+  "Sets the checker hash externally to use an already existing session."
+  [cur-hash]
+  (reset! checker-hash cur-hash))
+
 (defn login
   "Initializes login flow by sending an SMS to the phone number of the account that is firing the request.
   Use the SMS received for getting the hash in login-sms-code function."
