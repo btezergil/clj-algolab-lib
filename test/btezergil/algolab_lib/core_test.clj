@@ -1,4 +1,4 @@
-(ns btezergil.algolab-lib-test
+(ns btezergil.algolab-lib.core-test
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.data.json :as json]
             [btezergil.algolab-lib :refer :all]
@@ -83,3 +83,4 @@
         {candle-endpoint
          {:post (fn [request] {:status 401 :headers {} :body nil})}}
         (is (thrown? Exception  (candle-data "SAHOL")))))))
+

@@ -1,10 +1,10 @@
-(ns btezergil.algolab-lib
+(ns btezergil.algolab-lib.core
   (:require [clojure.string :as str]
             [clojure.data.json :as json]
             [clojure.tools.logging :as log]
             [envvar.core :as envvar :refer [env]]
             [clj-http.client :as client]
-            [btezergil.constants :as c])
+            [btezergil.algolab-lib.constants :as c])
   (:import (javax.crypto Cipher)
            (javax.crypto.spec SecretKeySpec)
            (java.security MessageDigest)
@@ -130,6 +130,3 @@
        (catch Exception e
          (do (log/error "Failed to get candle data. Exception: " e)
              (throw e)))))
-;(login)
-;(login-sms-code "355937")
-;(equity-info "SAHOL")

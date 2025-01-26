@@ -1,4 +1,4 @@
-(ns btezergil.constants)
+(ns btezergil.algolab-lib.constants)
 
 (def api-hostname "https://www.algolab.com.tr/api")
 
