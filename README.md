@@ -1,8 +1,11 @@
 # btezergil/algolab-lib
 
+[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.btezergil/algolab-lib.svg)](https://clojars.org/org.clojars.btezergil/algolab-lib)
+
 Clojure library to access Denizbank ALGOLAB infrastructure.
 
 ## Usage
+
 You will have to initialize three environment variables for ALGOLAB:
 ALGOLAB_APIKEY: apiKey given by ALGOLAB for access
 ALGOLAB_USERNAME: TCKN of ALGOLAB account
