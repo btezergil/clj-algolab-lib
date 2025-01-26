@@ -3,7 +3,8 @@
             [clojure.data.json :as json]
             [clojure.tools.logging :as log]
             [envvar.core :as envvar :refer [env]]
-            [clj-http.client :as client])
+            [clj-http.client :as client]
+            [btezergil.constants :as c])
   (:import (javax.crypto Cipher)
            (javax.crypto.spec SecretKeySpec)
            (java.security MessageDigest)
@@ -14,7 +15,6 @@
 (def password (:algolab-password @env))
 
 (def aes-key (second (str/split apikey #"-")))
-(def api-hostname "https://www.algolab.com.tr/api")
 (def token (atom nil))
 (def checker-hash (atom nil))
 
@@ -31,7 +31,7 @@
 (defn generate-checker
   "Generates the checker that is used to validate every request."
   [endpoint payload]
-  (let [data (str apikey api-hostname endpoint payload)
+  (let [data (str apikey c/api-hostname endpoint payload)
         digest (MessageDigest/getInstance "SHA256")]
     (Hex/encodeHexString (.digest digest (.getBytes data "UTF-8")))))
 
@@ -43,7 +43,7 @@
         encrypted-passwd (encrypt password)
         payload (json/write-str {:Username encrypted-username
                                  :Password encrypted-passwd})
-        response (client/post (str api-hostname "/api/LoginUser")
+        response (client/post c/login-endpoint
                               {:content-type :json
                                :body payload
                                :headers {"APIKEY" apikey}})
@@ -51,7 +51,8 @@
     (if (:success body)
       (do (reset! token (-> body :content :token))
           (log/info "Login to ALGOLAB succeeded, token received, please insert SMS code next."))
-      (log/warn "Login to ALGOLAB failed, no token received. Response: " response))))
+      (do (log/error "Login to ALGOLAB failed, no token received. Response: " response)
+          (throw (Exception. "Login to ALGOLAB failed."))))))
 
 (defn login-sms-code
   "Uses the SMS code received in the first part of the login flow to fetch the hash that is used to generate the checker."
@@ -60,7 +61,7 @@
         encrypted-passwd (encrypt sms-code)
         payload (json/write-str {:token encrypted-token
                                  :Password encrypted-passwd})
-        response (client/post (str api-hostname "/api/LoginUserControl")
+        response (client/post c/login-sms-endpoint
                               {:content-type :json
                                :body payload
                                :headers {"APIKEY" apikey}})
@@ -69,34 +70,42 @@
       (do (reset! checker-hash (-> body :content :hash))
           (log/info "Login to ALGOLAB succeeded, hash received.")
           @checker-hash)
-      (log/warn "Login to ALGOLAB failed, no hash received. Response: " response))))
+      (do (log/error "Login to ALGOLAB failed, no hash received. Response: " response)
+          (throw (Exception. "Login to ALGOLAB failed during SMS verification."))))))
 
 (defn session-refresh
   "Refreshes the existing session."
   []
-  (let [checker (generate-checker "/SessionRefresh" "")
-        response (client/post (str api-hostname "/api/SessionRefresh")
-                              {:content-type :json
-                               :body (json/write-str {})
-                               :headers {"APIKEY" apikey
-                                         "Checker" checker
-                                         "Authorization" @checker-hash}})]
-    (if (= 200 (:status response))
-      (log/info "Session refreshed successfully.")
-      (log/warn "Session failed to refresh. Response: " response))))
+  {:pre [(-> @checker-hash nil? not)]}
+  (try (let [checker (generate-checker c/session-refresh-path "")
+             response (client/post c/session-refresh-endpoint
+                                   {:content-type :json
+                                    :body (json/write-str {})
+                                    :headers {"APIKEY" apikey
+                                              "Checker" checker
+                                              "Authorization" @checker-hash}})]
+         (when (= 200 (:status response))
+           (log/info "Session refreshed successfully.")))
+       (catch Exception e
+         (do (log/error "Session failed to refresh. Exception: " e)
+             (throw e)))))
 
 (defn equity-info
   [equity]
-  (let [payload (json/write-str {:symbol equity})
-        checker (generate-checker "/GetEquityInfo" payload)
-        response (client/post (str api-hostname "/api/GetEquityInfo")
-                              {:content-type :json
-                               :body payload
-                               :headers {"APIKEY" apikey
-                                         "Checker" checker
-                                         "Authorization" @checker-hash}})
-        body (json/read-str (:body response) :key-fn keyword)]
-    body))
+  {:pre [(-> @checker-hash nil? not)]}
+  (try (let [payload (json/write-str {:symbol equity})
+             checker (generate-checker c/equity-info-path payload)
+             response (client/post c/equity-info-endpoint
+                                   {:content-type :json
+                                    :body payload
+                                    :headers {"APIKEY" apikey
+                                              "Checker" checker
+                                              "Authorization" @checker-hash}})
+             body (json/read-str (:body response) :key-fn keyword)]
+         body)
+       (catch Exception e
+         (do (log/error "Failed to get equity info. Exception: " e)
+             (throw e)))))
 
 (defn candle-data
   "Fetches the OHLC data for the given equity. 
@@ -104,18 +113,23 @@
   250 candles returned for 1 hour."
   [equity & {:keys [period]
              :or {period "60"}}]
-  (let [payload (json/write-str {:symbol equity
-                                 :period period})
-        checker (generate-checker "/GetCandleData" payload)
-        response (client/post (str api-hostname "/api/GetCandleData")
-                              {:content-type :json
-                               :body payload
-                               :headers {"APIKEY" apikey
-                                         "Checker" checker
-                                         "Authorization" @checker-hash}})
-        body (json/read-str (:body response) :key-fn keyword)
-        candles (:content body)]
-    (if (:success body)
-      candles
-      (log/warn "Failed to get candles. Response: " response))))
-
+  {:pre [(-> @checker-hash nil? not)]}
+  (try (let [payload (json/write-str {:symbol equity
+                                      :period period})
+             checker (generate-checker c/candle-path payload)
+             response (client/post c/candle-endpoint
+                                   {:content-type :json
+                                    :body payload
+                                    :headers {"APIKEY" apikey
+                                              "Checker" checker
+                                              "Authorization" @checker-hash}})
+             body (json/read-str (:body response) :key-fn keyword)
+             candles (:content body)]
+         (when (:success body)
+           candles))
+       (catch Exception e
+         (do (log/error "Failed to get candle data. Exception: " e)
+             (throw e)))))
+;(login)
+;(login-sms-code "355937")
+;(equity-info "SAHOL")
