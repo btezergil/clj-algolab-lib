@@ -1,8 +1,8 @@
 (ns btezergil.algolab-lib.core-test
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.data.json :as json]
-            [btezergil.algolab-lib :refer :all]
-            [btezergil.constants :refer :all]
+            [btezergil.algolab-lib.core :refer :all]
+            [btezergil.algolab-lib.constants :refer :all]
             [clj-http.fake :refer [with-fake-routes]]))
 
 (deftest encrypt-test

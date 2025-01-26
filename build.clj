@@ -4,7 +4,7 @@
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'org.clojars.btezergil/algolab-lib)
-(def version "0.1.0")
+(def version "0.1.1")
 #_; alternatively, use MAJOR.MINOR.COMMITS:
   (def version (format "1.0.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
@@ -28,7 +28,7 @@
      [:url "http://www.eclipse.org/legal/epl-v10.html"]]]
    [:developers
     [:developer
-     [:name "Btezergil"]]]
+     [:name "Berke Tezergil"]]]
    [:scm
     [:url "https://github.com/btezergil/algolab-lib"]
     [:connection "scm:git:https://github.com/btezergil/algolab-lib.git"]
