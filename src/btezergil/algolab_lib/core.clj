@@ -41,7 +41,12 @@
         digest (MessageDigest/getInstance "SHA256")]
     (Hex/encodeHexString (.digest digest (.getBytes data "UTF-8")))))
 
-(defn set-checker-hash-externally
+(defn set-token
+  "Sets the token externally to use an already existing session."
+  [cur-token]
+  (reset! token cur-token))
+
+(defn set-hash
   "Sets the checker hash externally to use an already existing session."
   [cur-hash]
   (reset! checker-hash cur-hash))
@@ -61,7 +66,8 @@
         body (json/read-str (:body response) :key-fn keyword)]
     (if (:success body)
       (do (reset! token (-> body :content :token))
-          (log/info "Login to ALGOLAB succeeded, token received, please insert SMS code next."))
+          (log/info "Login to ALGOLAB succeeded, token received, please insert SMS code next.")
+          @token)
       (do (log/error "Login to ALGOLAB failed, no token received. Response: " response)
           (throw (Exception. "Login to ALGOLAB failed."))))))
 
