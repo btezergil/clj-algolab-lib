@@ -14,7 +14,6 @@
 (def username (:algolab-username @env))
 (def password (:algolab-password @env))
 
-(def aes-key (second (str/split apikey #"-")))
 (def token (atom nil))
 (def checker-hash (atom nil))
 
@@ -22,7 +21,14 @@
   "Encryption function for login flow, uses AES encryption as required by ALGOLAB."
   [text]
   (let  [text-bytes (.getBytes text "UTF-8")
-         key-spec (SecretKeySpec. (Base64/decodeBase64 (.getBytes aes-key "UTF-8")) "AES")
+         apikey-hash-index (-> apikey
+                               (str/index-of "-")
+                               inc)
+         key-spec (-> apikey
+                      (subs apikey-hash-index)
+                      (.getBytes "UTF-8")
+                      Base64/decodeBase64
+                      (SecretKeySpec. "AES"))
          iv (byte-array 16)
          cipher (Cipher/getInstance "AES/CBC/PKCS5Padding")]
     (.init cipher Cipher/ENCRYPT_MODE key-spec (javax.crypto.spec.IvParameterSpec. iv))

@@ -4,7 +4,7 @@
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'org.clojars.btezergil/algolab-lib)
-(def version "0.1.1")
+(def version "0.1.3")
 #_; alternatively, use MAJOR.MINOR.COMMITS:
   (def version (format "1.0.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
@@ -20,7 +20,7 @@
   opts)
 
 (defn- pom-template [version]
-  [[:description "FIXME: my new library."]
+  [[:description "Denizbank ALGOLAB API access library."]
    [:url "https://github.com/btezergil/algolab-lib"]
    [:licenses
     [:license

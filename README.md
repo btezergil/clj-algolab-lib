@@ -14,11 +14,6 @@ You will have to initialize three environment variables for ALGOLAB:
 In order to access the API, you'll need to call the login function and then the login-sms-code function with the received code.
 The hash received from this flow is required to generate the checker, which is used to validate all API requests.
 
-Invoke a library API function from the command-line:
-
-    $ clojure -X btezergil.algolab-lib/foo :a 1 :b '"two"'
-    {:a 1, :b "two"} "Hello, World!"
-
 Run the project's tests (they'll fail until you edit them):
 
     $ clojure -T:build test
